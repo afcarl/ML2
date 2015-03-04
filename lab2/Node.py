@@ -146,6 +146,7 @@ class Variable(Node):
 #         for key,value in received.iteritems():
 #             msg_product *= value
             
+
         msg_product = np.multiply.reduce(received.values())
         
         other.receive_msg(self,msg_product)
@@ -176,8 +177,7 @@ class Factor(Node):
             nb = neighbours[nb_ind]
             assert f.shape[nb_ind] == nb.num_states, 'The range of the factor function f is invalid for input %i %s' % (nb_ind, nb.name)
             self.add_neighbour(nb)
-            nb.add_neighbour(self)
-
+            nb.add_neighbour(self) 
         self.f = f
         
     def send_sp_msg(self, other):
@@ -205,7 +205,7 @@ class Factor(Node):
             axes = (tuple(axes),range(len(axes)))
         
         factor_msg_product = np.tensordot(self.f,msg_product, axes=axes)
-        
+
         #Marginalize over all of the variables associated with the incoming messages
 #         print factor_msg_product.shape
 #         raw_input()
