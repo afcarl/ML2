@@ -6,7 +6,7 @@ def sum_product(node_list):
     for node in node_list:
         pending = set(node.pending)
         for other in pending:
-            node.send_sp_msg(other)        
+           	node.send_sp_msg(other)        
 
 # Instantiate Variable nodes
 I = Node.Variable('Influenza',2)
@@ -70,8 +70,9 @@ W.pending.update([B_W])
 
 sum_product(reversed(node_list))
 
+print "########################### Marginals ###########################"
 for node in node_list:
     if node.__class__.__name__ == "Variable":
-
+    	print node.name
         marginal, Z = node.marginal(None)
         print marginal

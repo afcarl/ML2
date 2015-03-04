@@ -113,18 +113,13 @@ class Variable(Node):
         # TODO: compute marginal
         assert(len(self.in_msgs) == len(self.neighbours))
         
-        msg_product = np.array([1,1])
-        for key,value in self.in_msgs.iteritems():
-            msg_product *= value
-        
-        #Check if marginalizing goes right
-#         value = np.tensordot(self.f,msg_product, axes=axes)
-        value = 0
-        
-        #compute Z
+        marginal = np.multiply.reduce(self.in_msgs.values())
 
+        #compute Z
+        if Z == None:
+            Z = np.sum(marginal)
         
-        return value, Z
+        return marginal, Z
     
     def send_sp_msg(self, other):
         # TODO: implement Variable -> Factor message for sum-product
@@ -138,18 +133,10 @@ class Variable(Node):
 
         assert(len(received) == (len(self.neighbours) - 1)), "Not all necessary messages have been received"
             
-        
-#         msgs = [value for key,value in received.iteritems()]
-#         msg_product = np.multiply.reduce(np.ix_(*msgs))
 
-#         msg_product = np.array([1,1])
-#         for key,value in received.iteritems():
-#             msg_product *= value
-            
-
-        msg_product = np.multiply.reduce(received.values())
+        new_msg = np.multiply.reduce(received.values())
         
-        other.receive_msg(self,msg_product)
+        other.receive_msg(self,new_msg)
         self.pending.remove(other)
             
        
@@ -204,13 +191,9 @@ class Factor(Node):
         else:
             axes = (tuple(axes),range(len(axes)))
         
-        factor_msg_product = np.tensordot(self.f,msg_product, axes=axes)
+        new_msg = np.tensordot(self.f,msg_product, axes=axes)
 
-        #Marginalize over all of the variables associated with the incoming messages
-#         print factor_msg_product.shape
-#         raw_input()
-#         marginals = np.sum(factor_msg_product, axis=0)
-        other.receive_msg(self,factor_msg_product)
+        other.receive_msg(self,new_msg)
         self.pending.remove(other)
            
     def send_ms_msg(self, other):
