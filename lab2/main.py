@@ -2,11 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import Node
 
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning) 
+
 def sum_product(node_list):
     for node in node_list:
         pending = set(node.pending)
         for other in pending:
-           	node.send_sp_msg(other)        
+           	node.send_sp_msg(other) 
+
+def max_sum(node_list):
+    for node in node_list:
+        pending = set(node.pending)
+        for other in pending:
+           	node.send_ms_msg(other)         
 
 # Instantiate Variable nodes
 I = Node.Variable('Influenza',2)
@@ -18,8 +27,8 @@ C = Node.Variable('Coughing',2)
 W = Node.Variable('Wheezing',2)
 
 # and Factor nodes
-I_prior = Node.Factor('I_prior',np.array([0.05,0.95]),[I])
-SM_prior = Node.Factor('SM_prior',np.array([0.2,0.8]),[SM])
+I_prior = Node.Factor('I_prior',np.array([0.95,0.05]),[I])
+SM_prior = Node.Factor('SM_prior',np.array([0.8,0.2]),[SM])
 
 I_ST  = Node.Factor('I_ST',np.empty((2,2)),[I, ST])
 I_F   = Node.Factor('I_F',np.empty((2,2)),[I,F])
@@ -40,10 +49,13 @@ I_F.f[0,0] = 0.95
 
 SMI_B.f[1,1,1] = 0.99
 SMI_B.f[1,1,0] = 0.01
-SMI_B.f[1,0,1] = 0.9
-SMI_B.f[1,0,0] = 0.1
-SMI_B.f[0,1,1] = 0.7
-SMI_B.f[0,1,0] = 0.3
+
+SMI_B.f[1,0,1] = 0.7
+SMI_B.f[1,0,0] = 0.3
+
+SMI_B.f[0,1,1] = 0.9
+SMI_B.f[0,1,0] = 0.1
+
 SMI_B.f[0,0,1] = 0.0001
 SMI_B.f[0,0,0] = 0.9999
 
@@ -56,23 +68,38 @@ B_W.f[0,1] = 0.001
 B_W.f[1,0] = 0.4
 B_W.f[0,0] = 0.999
 
+
+I.set_observed(1)
 #Wheezing is root!
 I_prior.pending.update([I])
 SM_prior.pending.update([SM])
 ST.pending.update([I_ST])
 F.pending.update([I_F])
 C.pending.update([B_C])
-
-node_list = [I_prior, SM_prior, ST, F, C, I_ST, I_F, I, SM, SMI_B, B_C, B, B_W, W]
-sum_product(node_list)
-
 W.pending.update([B_W])
 
-sum_product(reversed(node_list))
+node_list = [I_prior, SM_prior, ST, F, C, I_ST, I_F, I, SM, SMI_B, B_C, B, B_W, W]
 
-print "########################### Marginals ###########################"
+
+
+
+
+# print "########################### Marginals ###########################"
+# sum_product(node_list)
+# sum_product(reversed(node_list))
+# for node in node_list:
+#     if node.__class__.__name__ == "Variable":
+#     	print node.name
+#         marginal, Z = node.marginal(None)
+#         max_state = node.max()
+#         print "marginal, Z, max", marginal, Z, max_state
+
+print "########################### Max ###########################"
+
+max_sum(node_list)
+max_sum(reversed(node_list))
+
 for node in node_list:
     if node.__class__.__name__ == "Variable":
-    	print node.name
-        marginal, Z = node.marginal(None)
-        print marginal
+        max_state = node.max()
+        print node.name, max_state

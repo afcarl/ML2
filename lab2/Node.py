@@ -51,7 +51,9 @@ class Node(object):
         #non-loopy propagation
         #BAD code - refactor
         for neighbour in self.neighbours:
-            if neighbour in self.in_msgs.keys() and len(self.in_msgs) == len(self.neighbours):
+            if neighbour == other:
+                continue
+            elif neighbour in self.in_msgs.keys() and len(self.in_msgs) == len(self.neighbours):
                 self.pending.update([neighbour])
             elif neighbour not in self.in_msgs.keys() and len(self.in_msgs) == (len(self.neighbours) - 1):
                 self.pending.update([neighbour])
@@ -115,16 +117,34 @@ class Variable(Node):
         
         marginal = np.multiply.reduce(self.in_msgs.values())
 
+        #Assignment 1.7
+        marginal = marginal * self.observed_state
+
         #compute Z
         if Z == None:
             Z = np.sum(marginal)
+
+
+        normalized_marginal = marginal / Z
         
-        return marginal, Z
+        return normalized_marginal, Z
+
+    def max(self):
+        assert(len(self.in_msgs) == len(self.neighbours))
+        
+        marginal = np.add.reduce(self.in_msgs.values())
+
+        #Assignment 1.7
+        marginal += np.log(self.observed_state)
+
+        return np.argmax(marginal)
+
     
     def send_sp_msg(self, other):
         # TODO: implement Variable -> Factor message for sum-product
         if len(self.neighbours) == 1:
-            other.receive_msg(self,np.array([1.,1.]))
+            other.receive_msg(self,np.array([1.,1.]) * self.observed_state)
+            self.pending.remove(other)
             return
             
         received = dict(self.in_msgs)
@@ -134,6 +154,9 @@ class Variable(Node):
         assert(len(received) == (len(self.neighbours) - 1)), "Not all necessary messages have been received"
 
         new_msg = np.multiply.reduce(received.values())
+
+        #Add assignment 1.7
+        new_msg = new_msg * self.observed_state
         
         other.receive_msg(self,new_msg)
         self.pending.remove(other)
@@ -141,7 +164,24 @@ class Variable(Node):
        
     def send_ms_msg(self, other):
         # TODO: implement Variable -> Factor message for max-sum
-        pass
+        if len(self.neighbours) == 1:
+            other.receive_msg(self,np.array([0.,0.]) + np.log(self.observed_state))
+            self.pending.remove(other)
+            return
+            
+        received = dict(self.in_msgs)
+        if other in received:
+            del received[other]
+
+        assert(len(received) == (len(self.neighbours) - 1)), "Not all necessary messages have been received"
+
+        new_msg = np.add.reduce(received.values())
+
+        #Add assignment 1.7
+        new_msg = new_msg + np.log(self.observed_state)
+        
+        other.receive_msg(self,new_msg)
+        self.pending.remove(other)
 
 class Factor(Node):
     def __init__(self, name, f, neighbours):
@@ -177,17 +217,13 @@ class Factor(Node):
         assert(len(received) == (self.f.ndim - 1)), "Not all necessary messages have been received"
             
         #Take the product of incoming messages of all other variables
-        msg_product = np.multiply.reduce(np.ix_(*received.values()))
+        msg_n = [n for n in self.neighbours if received.get(n) != None]
+        received_ordered = [received.get(n) for n in msg_n]
+        msg_product = np.multiply.reduce(np.ix_(*received_ordered))
         
         #multiply by the factor associated with that node
-        axes = [self.neighbours.index(rec) for rec in received]
-        
-        if len(axes) == 0:
-            axes = 0
-        elif len(axes) == 1:
-            axes = ((axes[0]),(0))
-        else:
-            axes = (tuple(axes),range(len(axes)))
+        axes = [self.neighbours.index(n) for n in msg_n]
+        axes = (axes,range(len(axes)))
         
         new_msg = np.tensordot(self.f,msg_product, axes=axes)
 
@@ -196,4 +232,27 @@ class Factor(Node):
            
     def send_ms_msg(self, other):
         # TODO: implement Factor -> Variable message for max-sum
-        pass
+        #Check if all messages from all neighbors except other have been received
+        received = dict(self.in_msgs)
+        if other in received:
+            del received[other]
+    
+        assert(len(received) == (self.f.ndim - 1)), "Not all necessary messages have been received"
+            
+        #Take the product of incoming messages of all other variables
+        msg_n = [n for n in self.neighbours if received.get(n) != None]
+
+        received_ordered = [received.get(n) for n in msg_n]
+
+        msg_sum = np.add.reduce(np.ix_(*received_ordered))
+        
+        #multiply by the factor associated with that node
+        new_shape = list(msg_sum.shape)
+        new_shape.insert(self.neighbours.index(other), 1)
+        msg_sum_f = np.log(self.f) + msg_sum.reshape(new_shape)
+        axes = [self.neighbours.index(n) for n in msg_n]
+        
+        max_msg = np.apply_over_axes(np.amax, msg_sum_f, axes).squeeze()
+
+        other.receive_msg(self,max_msg)
+        self.pending.remove(other)
