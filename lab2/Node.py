@@ -132,7 +132,6 @@ class Variable(Node):
             del received[other]
 
         assert(len(received) == (len(self.neighbours) - 1)), "Not all necessary messages have been received"
-            
 
         new_msg = np.multiply.reduce(received.values())
         
@@ -178,8 +177,7 @@ class Factor(Node):
         assert(len(received) == (self.f.ndim - 1)), "Not all necessary messages have been received"
             
         #Take the product of incoming messages of all other variables
-        msgs = [value for key,value in received.iteritems()]
-        msg_product = np.multiply.reduce(np.ix_(*msgs))
+        msg_product = np.multiply.reduce(np.ix_(*received.values()))
         
         #multiply by the factor associated with that node
         axes = [self.neighbours.index(rec) for rec in received]
