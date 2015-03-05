@@ -1,3 +1,7 @@
+# Answer to 1.8: We now know the (marginal) a posteriori likelihood of each value of each node individually, 
+# but as the variables are not independent we do not know which combination of values is the MAP state.
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 import Node
