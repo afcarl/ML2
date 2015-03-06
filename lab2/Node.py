@@ -39,17 +39,10 @@ class Node(object):
     def receive_msg(self, other, msg):
         # Store the incoming message, replacing previous messages from the same node
         self.in_msgs[other] = msg
-
-        #Different implementation for loopy and non-loopy propagation
+        
         # self.pending.update(...)
         
-        #loopy propagation
-#         pending_neighbours = list(self.neighbours)
-#         pending_neighbours.remove(other)
-#         self.pending.update(pending_neighbours)
-        
-        #non-loopy propagation
-        #BAD code - refactor
+        #Add pending neighbours
         for neighbour in self.neighbours:
             if neighbour == other:
                 continue
@@ -57,6 +50,7 @@ class Node(object):
                 self.pending.update([neighbour])
             elif neighbour not in self.in_msgs.keys() and len(self.in_msgs) == (len(self.neighbours) - 1):
                 self.pending.update([neighbour])
+
     
     def __str__(self):
         # This is printed when using 'print node_instance'
@@ -157,6 +151,7 @@ class Variable(Node):
 
         #Add assignment 1.7
         new_msg = new_msg * self.observed_state
+
         
         other.receive_msg(self,new_msg)
         self.pending.remove(other)
@@ -179,6 +174,9 @@ class Variable(Node):
 
         #Add assignment 1.7
         new_msg = new_msg + np.log(self.observed_state)
+
+        # new_msg = new_msg - np.mean(new_msg)
+        # print new_msg
         
         other.receive_msg(self,new_msg)
         self.pending.remove(other)
@@ -250,7 +248,9 @@ class Factor(Node):
         new_shape = list(msg_sum.shape)
         new_shape.insert(self.neighbours.index(other), 1)
         msg_sum_f = np.log(self.f) + msg_sum.reshape(new_shape)
-        axes = [self.neighbours.index(n) for n in msg_n]
+
+        #test
+        axes = self.neighbours.index(other)
         
         max_msg = np.apply_over_axes(np.amax, msg_sum_f, axes).squeeze()
 
