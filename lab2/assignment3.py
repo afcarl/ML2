@@ -18,8 +18,11 @@ noise_im = np.logical_xor(noise, im)
 # plt.imshow(noise_im)
 
 test_im = np.zeros((10,10))
-test_im[2:8, 2:8] = 0.0
-# test_im[6,5] = 1.0
+test_im[5:8, 3:8] = 1.0
+# test_im[5, 5] = 1.
+# test_im[4, 4] = 1.
+
+
 # plt.figure()
 # plt.imshow(test_im)
 # plt.gray()
@@ -36,7 +39,7 @@ noise_test_im = np.logical_xor(noise, test_im)
 # # and Factor nodes
 # I_prior = Node.Factor('I_prior',np.array([0.95,0.05]),[I])
 
-test_im = noise_test_im
+test_im = im
 
 pixel_x = test_im.shape[0]
 pixel_y = test_im.shape[1]
@@ -48,14 +51,20 @@ latent_factor_graph = dict()
 
 
 #Coordinates are of shape (x,y)
-init_prob = np.zeros((2,2)) + 0.5
+# init_prob = np.zeros((2,2)) + 0.5
 
-init_prob_unequal = np.empty((2,2))
+init_prob_obs = np.empty((2,2))
+init_prob_lat = np.empty((2,2))
 
-init_prob_unequal[0,0] = 0.5
-init_prob_unequal[0,1] = 0.5
-init_prob_unequal[1,0] = 0.5
-init_prob_unequal[1,1] = 0.5
+init_prob_obs[0,0] = 0.99
+init_prob_obs[0,1] = 0.01
+init_prob_obs[1,0] = 0.01
+init_prob_obs[1,1] = 0.99
+
+init_prob_lat[0,0] = 0.9
+init_prob_lat[0,1] = 0.1
+init_prob_lat[1,0] = 0.1
+init_prob_lat[1,1] = 0.9
 
 for x in xrange(pixel_x):
     for y in xrange(pixel_y):
@@ -64,7 +73,7 @@ for x in xrange(pixel_x):
 
         latent_graph[x][y] = Node.Variable("V_latent" + str(x) + str(y),2)
 
-        observed_factor_graph[x][y] = Node.Factor("F_observed" + str(x) + str(y),init_prob_unequal,[observed_graph[x][y],latent_graph[x][y]])
+        observed_factor_graph[x][y] = Node.Factor("F_observed" + str(x) + str(y),init_prob_obs,[observed_graph[x][y],latent_graph[x][y]])
 
         observed_graph[x][y].pending.update([observed_factor_graph[x][y]])
 
@@ -75,9 +84,9 @@ for x in xrange(pixel_x):
         name_y = "F_latent" + str(x) + str(y) + "-" + str(x) + str(y + 1)
 
         if x != (pixel_x - 1):
-            latent_factor_graph[name_x] = Node.Factor(name_x,init_prob,[latent_graph[x][y],latent_graph[x + 1][y]])
+            latent_factor_graph[name_x] = Node.Factor(name_x,init_prob_lat,[latent_graph[x][y],latent_graph[x + 1][y]])
         if y != (pixel_y - 1):
-            latent_factor_graph[name_y] = Node.Factor(name_y,init_prob,[latent_graph[x][y],latent_graph[x][y + 1]])
+            latent_factor_graph[name_y] = Node.Factor(name_y,init_prob_lat,[latent_graph[x][y],latent_graph[x][y + 1]])
 
 for x in xrange(pixel_x):
     for y in xrange(pixel_y):
@@ -95,9 +104,10 @@ for x in xrange(pixel_x):
         if y != 0:
             latent_graph[x][y].in_msgs[latent_factor_graph[name(x,y-1,x,y)]] = np.array([1.,1.])
 
+old_rec_im = np.zeros((pixel_x,pixel_y))
 
 
-for i in xrange(50):
+for i in xrange(20):
     print "Iteration", i
     #First the observed variables
 
@@ -108,6 +118,7 @@ for i in xrange(50):
             pending = set(node.pending)
             for other in pending:
                 node.send_ms_msg(other)
+    print "Observed done!"
 
     #Then the obs-lat factors
     for x in xrange(pixel_x):
@@ -117,7 +128,7 @@ for i in xrange(50):
             pending = set(node.pending)
             for other in pending:
                 node.send_ms_msg(other)
-
+    print "Obs-Lat Factors done!"
 
     #Then the latent variables
     for x in xrange(pixel_x):
@@ -127,7 +138,7 @@ for i in xrange(50):
             pending = set(node.pending)
             for other in pending:
                 node.send_ms_msg(other)
-
+    print "Latent variables done!"
 
     #Then the lat-lat factors
     factor_order = latent_factor_graph.keys()
@@ -138,8 +149,7 @@ for i in xrange(50):
             pending = set(node.pending)
             for other in pending:
                 node.send_ms_msg(other) 
-
-
+    print "Latent - Latent Factors"
 
     rec_im = np.empty((pixel_x,pixel_y))
 
@@ -148,17 +158,24 @@ for i in xrange(50):
             node = latent_graph[x][y]
             rec_im[x,y] = node.max()
 
- 
-    print test_im.shape[0] * test_im.shape[1]
-    print np.sum(test_im)
-    print np.sum(rec_im)
-    print "-------------------"
+    print np.sum(np.abs(old_rec_im - rec_im))
 
-print test_im
-print rec_im
-# plt.figure()
-# plt.imshow(rec_im)
-# plt.gray()
-# plt.show()
+    old_rec_im = rec_im
+
+    
+    plt.figure()
+    plt.imshow(test_im)
+    plt.gray()
+    plt.axis('off')
+    plt.savefig("iteration" + str(i))
+
+    # print test_im.shape[0] * test_im.shape[1]
+    # print np.sum(test_im)
+    # print np.sum(rec_im)
+    # print "-------------------"
+
+# print test_im.astype('float')
+# print rec_im
+# 
 
 

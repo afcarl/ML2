@@ -39,7 +39,9 @@ class Node(object):
     def receive_msg(self, other, msg):
         # Store the incoming message, replacing previous messages from the same node
         self.in_msgs[other] = msg
-        
+        # print other.name, self.name, msg
+        # raw_input()
+
         # self.pending.update(...)
         
         #Add pending neighbours
@@ -151,7 +153,6 @@ class Variable(Node):
 
         #Add assignment 1.7
         new_msg = new_msg * self.observed_state
-
         
         other.receive_msg(self,new_msg)
         self.pending.remove(other)
@@ -160,7 +161,9 @@ class Variable(Node):
     def send_ms_msg(self, other):
         # TODO: implement Variable -> Factor message for max-sum
         if len(self.neighbours) == 1:
-            other.receive_msg(self,np.array([0.,0.]) + np.log(self.observed_state))
+            new_msg = np.array([0.,0.]) + np.log(self.observed_state)
+            new_msg = new_msg / np.sum(np.abs(new_msg))
+            other.receive_msg(self,new_msg)
             self.pending.remove(other)
             return
             
@@ -174,6 +177,8 @@ class Variable(Node):
 
         #Add assignment 1.7
         new_msg = new_msg + np.log(self.observed_state)
+
+        new_msg = new_msg / np.sum(np.abs(new_msg))
 
         # new_msg = new_msg - np.mean(new_msg)
         # print new_msg
