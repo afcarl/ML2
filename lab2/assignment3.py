@@ -5,7 +5,6 @@ import Node
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning) 
 
-
 # Load the image and binarize
 im = np.mean(plt.imread('dalmatian1.png'), axis=2) > 0.5
 # plt.imshow(im)
@@ -20,8 +19,6 @@ noise_im = np.logical_xor(noise, im)
 test_im = np.zeros((10,10))
 test_im[5:8, 3:8] = 1.0
 # test_im[5, 5] = 1.
-# test_im[4, 4] = 1.
-
 
 # plt.figure()
 # plt.imshow(test_im)
@@ -34,12 +31,7 @@ noise_test_im = np.logical_xor(noise, test_im)
 # plt.figure()
 # plt.imshow(noise_test_im)
 
-# W = Node.Variable('Wheezing',2)
-
-# # and Factor nodes
-# I_prior = Node.Factor('I_prior',np.array([0.95,0.05]),[I])
-
-test_im = im
+test_im = noise_test_im
 
 pixel_x = test_im.shape[0]
 pixel_y = test_im.shape[1]
@@ -48,10 +40,6 @@ observed_graph = [[None for i in xrange(pixel_y)] for j in xrange(pixel_x)]
 latent_graph = [[None for i in xrange(pixel_y)] for j in xrange(pixel_x)]
 observed_factor_graph = [[None for i in xrange(pixel_y)] for j in xrange(pixel_x)]
 latent_factor_graph = dict()
-
-
-#Coordinates are of shape (x,y)
-# init_prob = np.zeros((2,2)) + 0.5
 
 init_prob_obs = np.empty((2,2))
 init_prob_lat = np.empty((2,2))
@@ -104,13 +92,11 @@ for x in xrange(pixel_x):
         if y != 0:
             latent_graph[x][y].in_msgs[latent_factor_graph[name(x,y-1,x,y)]] = np.array([1.,1.])
 
-old_rec_im = np.zeros((pixel_x,pixel_y))
-
 
 for i in xrange(20):
-    print "Iteration", i
-    #First the observed variables
+    print "Iteration", str(i + 1)
 
+    #First the observed variables
     for x in xrange(pixel_x):
         for y in xrange(pixel_y):
             node = observed_graph[x][y]
@@ -118,7 +104,6 @@ for i in xrange(20):
             pending = set(node.pending)
             for other in pending:
                 node.send_ms_msg(other)
-    print "Observed done!"
 
     #Then the obs-lat factors
     for x in xrange(pixel_x):
@@ -128,7 +113,6 @@ for i in xrange(20):
             pending = set(node.pending)
             for other in pending:
                 node.send_ms_msg(other)
-    print "Obs-Lat Factors done!"
 
     #Then the latent variables
     for x in xrange(pixel_x):
@@ -138,7 +122,6 @@ for i in xrange(20):
             pending = set(node.pending)
             for other in pending:
                 node.send_ms_msg(other)
-    print "Latent variables done!"
 
     #Then the lat-lat factors
     factor_order = latent_factor_graph.keys()
@@ -149,7 +132,6 @@ for i in xrange(20):
             pending = set(node.pending)
             for other in pending:
                 node.send_ms_msg(other) 
-    print "Latent - Latent Factors"
 
     rec_im = np.empty((pixel_x,pixel_y))
 
@@ -158,24 +140,12 @@ for i in xrange(20):
             node = latent_graph[x][y]
             rec_im[x,y] = node.max()
 
-    print np.sum(np.abs(old_rec_im - rec_im))
 
-    old_rec_im = rec_im
 
-    
-    plt.figure()
-    plt.imshow(test_im)
-    plt.gray()
-    plt.axis('off')
-    plt.savefig("iteration" + str(i))
+print "######## Image with noise ######"
+print test_im.astype('float')
 
-    # print test_im.shape[0] * test_im.shape[1]
-    # print np.sum(test_im)
-    # print np.sum(rec_im)
-    # print "-------------------"
-
-# print test_im.astype('float')
-# print rec_im
-# 
+print "######## Denoised image ######"
+print rec_im
 
 

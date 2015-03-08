@@ -1,7 +1,3 @@
-# Answer to 1.8: We now know the (marginal) a posteriori likelihood of each value of each node individually, 
-# but as the variables are not independent we do not know which combination of values is the MAP state.
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 import Node
@@ -73,8 +69,6 @@ B_W.f[1,0] = 0.4
 B_W.f[0,0] = 0.999
 
 
-I.set_observed(1)
-#Wheezing is root!
 I_prior.pending.update([I])
 SM_prior.pending.update([SM])
 ST.pending.update([I_ST])
@@ -82,28 +76,29 @@ F.pending.update([I_F])
 C.pending.update([B_C])
 W.pending.update([B_W])
 
+
+
 node_list = [I_prior, SM_prior, ST, F, C, I_ST, I_F, I, SM, SMI_B, B_C, B, B_W, W]
 
+print "########################### Marginals ###########################"
+sum_product(node_list)
+W.pending.update([B_W])
 
 
-
-
-# print "########################### Marginals ###########################"
-# sum_product(node_list)
-# sum_product(reversed(node_list))
-# for node in node_list:
-#     if node.__class__.__name__ == "Variable":
-#     	print node.name
-#         marginal, Z = node.marginal(None)
-#         max_state = node.max()
-#         print "marginal, Z, max", marginal, Z, max_state
-
-print "########################### Max ###########################"
-
-max_sum(node_list)
-max_sum(reversed(node_list))
-
+sum_product(reversed(node_list))
 for node in node_list:
     if node.__class__.__name__ == "Variable":
-        max_state = node.max()
-        print node.name, max_state
+        marginal, Z = node.marginal(None)
+        print node.name, "marginal, Z", marginal, Z
+
+# print "########################### Max ###########################"
+
+# I.set_observed(1)
+
+# max_sum(node_list)
+# max_sum(reversed(node_list))
+
+# for node in node_list:
+#     if node.__class__.__name__ == "Variable":
+#         max_state = node.max()
+#         print node.name, max_state

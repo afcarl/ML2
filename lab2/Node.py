@@ -39,10 +39,6 @@ class Node(object):
     def receive_msg(self, other, msg):
         # Store the incoming message, replacing previous messages from the same node
         self.in_msgs[other] = msg
-        # print other.name, self.name, msg
-        # raw_input()
-
-        # self.pending.update(...)
         
         #Add pending neighbours
         for neighbour in self.neighbours:
@@ -120,7 +116,6 @@ class Variable(Node):
         if Z == None:
             Z = np.sum(marginal)
 
-
         normalized_marginal = marginal / Z
         
         return normalized_marginal, Z
@@ -162,7 +157,7 @@ class Variable(Node):
         # TODO: implement Variable -> Factor message for max-sum
         if len(self.neighbours) == 1:
             new_msg = np.array([0.,0.]) + np.log(self.observed_state)
-            new_msg = new_msg / np.sum(np.abs(new_msg))
+            new_msg = new_msg / (np.sum(np.abs(new_msg)) + 1e-7)
             other.receive_msg(self,new_msg)
             self.pending.remove(other)
             return
@@ -178,10 +173,7 @@ class Variable(Node):
         #Add assignment 1.7
         new_msg = new_msg + np.log(self.observed_state)
 
-        new_msg = new_msg / np.sum(np.abs(new_msg))
-
-        # new_msg = new_msg - np.mean(new_msg)
-        # print new_msg
+        new_msg = new_msg / np.sum(np.abs(new_msg), keepdims=True)
         
         other.receive_msg(self,new_msg)
         self.pending.remove(other)
@@ -255,9 +247,10 @@ class Factor(Node):
         msg_sum_f = np.log(self.f) + msg_sum.reshape(new_shape)
 
         #test
-        axes = self.neighbours.index(other)
+        axes = [self.neighbours.index(n) for n in msg_n]
         
         max_msg = np.apply_over_axes(np.amax, msg_sum_f, axes).squeeze()
+
 
         other.receive_msg(self,max_msg)
         self.pending.remove(other)
