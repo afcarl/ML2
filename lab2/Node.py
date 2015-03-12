@@ -40,7 +40,7 @@ class Node(object):
         # Store the incoming message, replacing previous messages from the same node
         self.in_msgs[other] = msg
         
-        #Add pending neighbours
+        #Add pending neighbours (Note in our implementation there is no need to differentiate between loopy and non-loopy)
         for neighbour in self.neighbours:
             if neighbour == other:
                 continue
@@ -104,12 +104,10 @@ class Variable(Node):
         Returns: marginal, Z. The first is a numpy array containing the normalized marginal distribution.
          Z is either equal to the input Z, or computed in this function (if Z=None was passed).
         """
-        # TODO: compute marginal
         assert(len(self.in_msgs) == len(self.neighbours))
         
         marginal = np.multiply.reduce(self.in_msgs.values())
 
-        #Assignment 1.7
         marginal = marginal * self.observed_state
 
         #compute Z
@@ -125,14 +123,12 @@ class Variable(Node):
         
         marginal = np.add.reduce(self.in_msgs.values())
 
-        #Assignment 1.7
         marginal += np.log(self.observed_state)
 
         return np.argmax(marginal)
 
     
     def send_sp_msg(self, other):
-        # TODO: implement Variable -> Factor message for sum-product
         if len(self.neighbours) == 1:
             other.receive_msg(self,np.array([1.,1.]) * self.observed_state)
             self.pending.remove(other)
@@ -146,7 +142,6 @@ class Variable(Node):
 
         new_msg = np.multiply.reduce(received.values())
 
-        #Add assignment 1.7
         new_msg = new_msg * self.observed_state
         
         other.receive_msg(self,new_msg)
@@ -154,7 +149,6 @@ class Variable(Node):
             
        
     def send_ms_msg(self, other):
-        # TODO: implement Variable -> Factor message for max-sum
         if len(self.neighbours) == 1:
             new_msg = np.array([0.,0.]) + np.log(self.observed_state)
             new_msg = new_msg / (np.sum(np.abs(new_msg)) + 1e-7)
@@ -170,7 +164,6 @@ class Variable(Node):
 
         new_msg = np.add.reduce(received.values())
 
-        #Add assignment 1.7
         new_msg = new_msg + np.log(self.observed_state)
 
         new_msg = new_msg / np.sum(np.abs(new_msg), keepdims=True)
@@ -211,12 +204,10 @@ class Factor(Node):
     
         assert(len(received) == (self.f.ndim - 1)), "Not all necessary messages have been received"
             
-        #Take the product of incoming messages of all other variables
         msg_n = [n for n in self.neighbours if received.get(n) != None]
         received_ordered = [received.get(n) for n in msg_n]
         msg_product = np.multiply.reduce(np.ix_(*received_ordered))
         
-        #multiply by the factor associated with that node
         axes = [self.neighbours.index(n) for n in msg_n]
         axes = (axes,range(len(axes)))
         
@@ -226,7 +217,6 @@ class Factor(Node):
         self.pending.remove(other)
            
     def send_ms_msg(self, other):
-        # TODO: implement Factor -> Variable message for max-sum
         #Check if all messages from all neighbors except other have been received
         received = dict(self.in_msgs)
         if other in received:
@@ -234,23 +224,19 @@ class Factor(Node):
     
         assert(len(received) == (self.f.ndim - 1)), "Not all necessary messages have been received"
             
-        #Take the product of incoming messages of all other variables
         msg_n = [n for n in self.neighbours if received.get(n) != None]
 
         received_ordered = [received.get(n) for n in msg_n]
 
         msg_sum = np.add.reduce(np.ix_(*received_ordered))
         
-        #multiply by the factor associated with that node
         new_shape = list(msg_sum.shape)
         new_shape.insert(self.neighbours.index(other), 1)
         msg_sum_f = np.log(self.f) + msg_sum.reshape(new_shape)
 
-        #test
         axes = [self.neighbours.index(n) for n in msg_n]
         
         max_msg = np.apply_over_axes(np.amax, msg_sum_f, axes).squeeze()
-
 
         other.receive_msg(self,max_msg)
         self.pending.remove(other)
