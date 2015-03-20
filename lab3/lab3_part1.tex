@@ -53,7 +53,23 @@ Q_i(\theta_i) &= \frac{\exp (\langle \ln P(D, \*\theta) \rangle_{k \neq i})}{\in
 
 \subsection*{3.}
 
-No, we cannot use this to assess the convergence of the VB PCA algorithm, because we cannot compute the true posterior which is necessary to evaluate the joint. We only have a lowerbound, computed with Q which approximates the posterior.
+\begin{align*}
+\ln(P(X, Z, W, \*\alpha, \*\tau, |\*\mu)) = \ln P(X|Z, W, \*\alpha, \*\tau, |\*\mu)+\ln P(Z)+\ln P(\*\mu) + \ln P(\*\tau) + \ln P(W|\*\alpha)+ \ln P(\*\alpha)= \\ 
+ -\frac{1}{2}\ln(|\frac{1}{\*\tau I_d|}-\frac{1}{2}(X-(WZ-\*\mu))(\frac{1}{\tau} I_d)(X-(WZ-\*\mu)) - \frac{d}{2}\ln(2\pi) \\
+-\frac{1}{2}\ln(1)-\frac{1}{2}ZI_qZ - \frac{d_q}{2}\ln(2\pi) \\ 
+-\frac{1}{2}\ln (|\*\beta^{-1} I_d|) -\frac{1}{2}\*\mu I_d
+\*\mu - \frac{d}{2}\ln (2\pi) \\
++\ln \Gamma(\tau|c_\tau, d_\tau) \\ 
++ \sum_{i=1}^{q}\{\frac{d}{2}\ln \frac{\alpha_i}{2\pi} - \frac{1}{2}\alpha_i ||W_i||^2\} \\ 
+\sum_{i=1}^{q} \ln \gamma (\alpha_i | a_\alpha, b_\alpha )
+\end{align*}
+Writing this out and grouping terms where possible, we obtain:
+
+\begin{align*}
+\ln p(\mathbf{X}, \mathbf{Z}, \mathbf{W}, \mathbf{\alpha}, \tau, \mathbf{\mu}) = -\frac{1}{2}\{\ln (\frac{1}{\tau \beta})+ (X-(WZ-\*\mu))\frac{I_d}{\tau}(X-(WZ+\*\mu)) + ZZ^T + \frac{\*\mu\*\mu^T}{\beta} + (2d+d_q)\ln 2\pi \} \\ \sum_{i=1}^{q}\{\frac{d}{2}\ln \frac{\alpha_i}{2\pi} - \frac{1}{2}\alpha_i ||W||^2 -b_\alpha \alpha_i + (a_\alpha -1)\ln(\alpha_i) + a_\alpha)\ln(b_\alpha) - \ln \Gamma (a_\alpha)\} + (-d_\tau \tau + (c_\tau -1) \ln (\tau) + c_\tau) \ln(d_\tau) -\ln \Gamma(c_\tau)
+\end{align*}
+
+We cannot use this to assess the convergence of the VB PCA algorithm with this log probability, because we cannot compute the true posterior which is necessary to evaluate the joint. We only have a lowerbound, computed with Q, which approximates the posterior.
 
 
 
