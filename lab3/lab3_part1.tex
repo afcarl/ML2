@@ -24,20 +24,37 @@ $Q$ approximates $p(\Theta|D)$, this can be seen from the input to the KL diverg
 
 \section*{2.}
 
-However, the expression given in eq. 13 for $Q_i$ contains a small mistake. Starting with the expression for the lower bound $\mathcal{L}(Q)$, derive the correct expression (and include your derivation). You can proceed as follows: first, substitute the factorization of $Q$ (eq. 12) into the definition of $\mathcal{L}(Q)$ and separate $\mathcal{L}(Q)$ into $Q_i$-dependent and $Q_i$-independent terms. At this point, you should be able to spot the expectations $\langle\cdot\rangle_{k \neq i}$ over the other $Q$-distributions that appear in Bishop's solution (eq. 13). Now, keeping all $Q_k, k \neq i$ fixed, maximize the expression with respect to $Q_i$. You should be able to spot the form of the optimal $ln Q_i$, from which $Q_i$ can easily be obtained.
-
 \begin{align*}
 \mathcal{L}(Q) &= \int Q(\*\theta) \ln \frac{P(D, \*\theta)}{Q(\*\theta)}d\*\theta \\
-Q(\*\theta) &= \prod_i Q_i(\theta_i)
+Q(\*\theta) &= \prod_k Q_k(\theta_k)
 \end{align*}
 
 Substitute in Q, write out the natural logarithm, split the integral, pull $Q_i(\theta_i)$ out of the product and rewrite as the rest as an expectation:
 
 \begin{align*}
-\mathcal{L}(Q) &= \int \prod_i Q_i(\theta_i) \ln \frac{P(D, \*\theta)}{\prod_i Q_i(\theta_i)}d\*\theta \\
-&= \int \prod_i Q_i(\theta_i) \ln P(D, \*\theta)d\*\theta - \int \prod_i Q_i(\theta_i) \ln \prod_i Q_i(\theta_i)d\*\theta \\
-&= \int Q_i(\theta_i) \prod_{k \neq i} Q_k(\theta_k) \ln P(D, \*\theta) d\*\theta - \int \prod_i Q_i(\theta_i) \ln \prod_i Q_i(\theta_i)d\*\theta \\
-&= \int Q_i(\theta_i) \langle \ln P(D, \*\theta) \rangle_{k \neq i}  d\theta_i - \int \prod_i Q_i(\theta_i) \ln \prod_i Q_i(\theta_i)d\*\theta \\
+\mathcal{L}(Q) &= \int \prod_k Q_k(\theta_k) \ln \frac{P(D, \*\theta)}{\prod_k Q_k(\theta_k)}d\*\theta \\
+&= \int \prod_k Q_k(\theta_k) \left [ \ln P(D, \*\theta) - \sum_k \ln Q_k(\theta_k) \right ] d\*\theta \\
+&= \int Q_i(\theta_i) \left [ \int \ln P(D, \*\theta) \prod_{k \neq i} Q_k(\theta_k) d\theta_k \right ] d\theta_i - \int Q_i(\theta_i) \ln Q_i(\theta_i) d\theta_i \\
+&= \int Q_i(\theta_i) \langle \ln P(D, \*\theta) \rangle_{k \neq i} d\theta_i - \int Q_i(\theta_i) \ln Q_i(\theta_i) d\theta_i
 \end{align*}
+
+Now note that the first term is a negative KLD between $Q_i(\theta_i)$ and the expectation, which means that maximizing this expression means minimizing this KLD. We know that the KLD is minimized when $Q_i(\theta_i)$ equals the expectation:
+
+\begin{align*}
+\ln Q_i(\theta_i) & \propto \langle \ln P(D, \*\theta) \rangle_{k \neq i} \\
+Q_i(\theta_i) &\propto \exp (\langle \ln P(D, \*\theta) \rangle_{k \neq i}) \\
+\end{align*}
+
+Now we still need to normalize this, giving:
+
+\begin{align*}
+Q_i(\theta_i) &= \frac{\exp (\langle \ln P(D, \*\theta) \rangle_{k \neq i})}{\int \exp (\langle \ln P(D, \*\theta) \rangle_{k \neq i}) d\theta_i} \\
+\end{align*}
+
+\subsection*{3.}
+
+No, we cannot use this to assess the convergence of the VB PCA algorithm, because we cannot compute the true posterior which is necessary to evaluate the joint. We only have a lowerbound, computed with Q which approximates the posterior.
+
+
 
 \end{document}
