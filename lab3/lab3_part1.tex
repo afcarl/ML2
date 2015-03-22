@@ -55,14 +55,10 @@ Q_i(\theta_i) &= \frac{\exp (\langle \ln P(D, \*\theta) \rangle_{k \neq i})}{\in
 
 \begin{align*}
 \ln(P(X, Z, W, \*\alpha, \*\tau, |\*\mu)) = \ln P(X|Z, W, \*\alpha, \*\tau, |\*\mu)+\ln P(Z)+\ln P(\*\mu) + \ln P(\*\tau) + \ln P(W|\*\alpha)+ \ln P(\*\alpha)= \\ 
-
 \sum_{n=1}^{N} -\frac{1}{2}\ln(|\frac{1}{\*\tau I_d|}-\frac{1}{2}(\*{x_n}-(W \*{z_n}-\*\mu))(\frac{1}{\tau} I_d)(\*{x_n}-(W\*{z_n}-\*\mu)) - \frac{d}{2}\ln(2\pi) \\
-
 + \sum_{i=1}^N -\frac{1}{2}\ln(1)-\frac{1}{2}\*z_n I_q \*z_n^T - \frac{D_q}{2}\ln(2\pi) \\ 
-
 -\frac{1}{2}\ln (|\*\beta^{-1} I_d|) -\frac{1}{2}\*\mu (\beta I_d)
 \*\mu - \frac{D_d}{2}\ln (2\pi) \\
-
 + c_\tau \ln(d_\tau) - \ln \Gamma(c_\tau)+(c_\tau -1)\ln(\tau)-d_\tau \tau\\ 
 + \sum_{i=1}^{q}\{\frac{d}{2}\ln \frac{\alpha_i}{2\pi} - \frac{1}{2}\alpha_i ||W_i||^2\} \\ 
 +\sum_{i=1}^{q} \{ a_\alpha \ln(b_\alpha) - \ln \Gamma(a_\alpha)+(a_\alpha -1)\ln(\alpha)-b_\alpha \alpha \}
