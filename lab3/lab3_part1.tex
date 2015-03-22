@@ -69,8 +69,40 @@ Writing this out and grouping terms where possible, we obtain:
 \ln p(\mathbf{X}, \mathbf{Z}, \mathbf{W}, \mathbf{\alpha}, \tau, \mathbf{\mu}) = -\frac{1}{2}\{\ln (\frac{1}{\tau \beta})+ (X-(WZ-\*\mu))\frac{I_d}{\tau}(X-(WZ+\*\mu)) + ZZ^T + \frac{\*\mu\*\mu^T}{\beta} + (2d+d_q)\ln 2\pi \} \\ \sum_{i=1}^{q}\{\frac{d}{2}\ln \frac{\alpha_i}{2\pi} - \frac{1}{2}\alpha_i ||W||^2 -b_\alpha \alpha_i + (a_\alpha -1)\ln(\alpha_i) + a_\alpha)\ln(b_\alpha) - \ln \Gamma (a_\alpha)\} + (-d_\tau \tau + (c_\tau -1) \ln (\tau) + c_\tau) \ln(d_\tau) -\ln \Gamma(c_\tau)
 \end{align*}
 
-We cannot use this to assess the convergence of the VB PCA algorithm with this log probability, because we cannot compute the true posterior which is necessary to evaluate the joint. We only have a lowerbound, computed with Q, which approximates the posterior.
+We can not use this to assess the convergence of the VB PCA algorithm with this log probability, because we cannot compute the true posterior which is necessary to evaluate the joint. We only have a lowerbound, computed with Q, which approximates the posterior.
 
+\subsection*{4.}
 
+The lowerbound consists of two parts:
 
+\begin{align*}
+\mathcal{L}(Q) &= \int Q(\theta) \ln p(D, \theta) d\theta - \int Q(\theta) \ln Q(\theta) d\theta \\
+\end{align*}
+
+The first integral can be rewritten as a sum of expectation over the factors of P, the second integral can be rewritten as a sum of entropies of the factors of Q. We first show how the second part simplifies to entropies and then tackle the expectations one by one.
+
+First note that the log of Q can be rewritten as a sum of logs, which we can then split in different integrals:
+
+\begin{align*}
+& \int Q(\theta) \ln Q(\theta) d\theta = \int Q(\theta) \sum_i \ln Q(\theta_i) d\theta\\
+&= \sum_i \left[ \int \prod_j Q_j(\theta_j) \ln Q_i(\theta_i) dX d\*W d\*\alpha d\*\mu d\tau \right]
+\end{align*}
+
+Now we pull this integral apart into integrals over specific parameters. Since for all $j \neq i$ this is just the integral over a probability distribution (which is 1) we are left with:
+
+\begin{align*}
+&= \sum_i \left[ \int Q_i(\theta_i) \ln Q_i(\theta_i) d\theta_i \right]
+\end{align*}
+
+This is however the definition of entropy which are known for the factors of Q:
+
+\begin{align*}
+H(Q(X)) &= \prod_{n=1}^N \left [\frac{D_{x_n}}{2}  (1 + \ln (2\pi)) + \frac{1}{2} \ln |\*\Sigma_{\*x} | \right ] \\
+H(Q(\*W)) &= \prod_{k=1}^d \left [ \frac{D_{\tilde{\*w}_k} }{2} (1 + \ln (2\pi)) + \frac{1}{2} \ln |\*\Sigma_{\*w} | \right ] \\
+H(Q(\*\alpha)) &= \prod_{i = 1}^q \left [ \tilde{\alpha}_a - \ln \tilde{\beta}_{\alpha i} + \ln \Gamma(\tilde{\alpha}_a) + (1 - \tilde{\alpha}_a)\psi(\tilde{\alpha}_a) \right ]\\
+H(Q(\*\mu)) &= \frac{D_{\*\mu}}{2}  (1 + \ln (2\pi)) + \frac{1}{2} \ln |\*\Sigma_{\*\mu} | \\
+H(Q(\tau)) &= \tilde{\alpha}_\tau - \ln \tilde{\beta}_{\tau} + \ln \Gamma(\tilde{\alpha}_\tau) + (1 - \tilde{\alpha}_\tau)\psi(\tilde{\alpha}_\tau)
+\end{align*}
+
+With D the dimensionality of the variable it's indexed by.
 \end{document}
