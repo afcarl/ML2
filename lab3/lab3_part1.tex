@@ -105,7 +105,75 @@ H(Q(\*\mu)) &= \frac{D_{\*\mu}}{2}  (1 + \ln (2\pi)) + \frac{1}{2} \ln |\*\Sigma
 H(Q(\tau)) &= \tilde{\alpha}_\tau - \ln \tilde{\beta}_{\tau} + \ln \Gamma(\tilde{\alpha}_\tau) + (1 - \tilde{\alpha}_\tau)\psi(\tilde{\alpha}_\tau)
 \end{align*}
 
-With D the dimensionality of the variable it's indexed by.\\
+With D the dimensionality of the variable its indexed by.\\
 
-For the second part of the lower bound $\int Q(\theta) \ln p(D, \theta) d\theta$
+For the first part of the lower bound $\int Q(\theta) \ln p(D, \theta) d\theta$, we split it into 6 integrals (each factor of P). This also the definition of the expectation. For each integral we apply the same trick with factors of Q integrating to 1. We also split the log each time to create simpler integrals.
+
+We will now describe the integral for each part of $p(D, \theta)$ separately:
+
+\begin{align*}
+ \langle \ln p(\*\mu) \rangle_{Q(\theta)} &= \int Q(\*\mu) \ln p(\*\mu) d\*\mu \\
+ &= \int Q(\*\mu)(\ln (2\pi^{\frac{-D_{\*\mu}}{2}} |\beta^{-1}I|^{-\frac{1}{2}}) + (\frac12 \*\mu^T(\beta^{-1}I)^{-1}\*\mu )) d\*\mu 
+\end{align*}
+
+Now the first part is independent of $\*\mu$ and the second part reduces to the second order moment times a constant:
+
+\begin{align*}
+&= \ln (2\pi^{\frac{-D_{\*\mu}}{2}} |\beta^{-1}I|^{-\frac{1}{2}}) - \frac12 \beta \mathbb{E}[\*\mu\*\mu^T] \\
+&= \ln (2\pi^{\frac{-D_{\*\mu}}{2}} |\beta^{-1}I|^{-\frac{1}{2}}) - \frac12 \beta \*\Sigma_{\*\mu}
+\end{align*}
+
+For $p(z_n)$ we perform exactly the same steps, except that we pull the sum out of the integral. This time we omit the steps were we split $\ln p(z_n)$ and the other stuff we described above:
+
+\begin{align*}
+\langle \ln p(Z) \rangle_{Q(\theta)} &= \sum_{n=1}{N} ( \ln(2\pi^{\frac{D_{z_n}}{2}}) - \frac12 \*\Sigma_z)
+\end{align*}
+
+For $p(\*\alpha)$ the situation is a bit different, because we have a Gamma distribution. After performing our usual tricks we end up at:
+\begin{align*}
+\langle \ln p(\*\alpha) \rangle_{Q(\theta)} &= \sum_{i=1}^q \int Q(\*\alpha_i) (\ln (\frac{b_\alpha^{a_\alpha}}{\Gamma(a\alpha)} + (a_\alpha - 1) \ln \alpha_i)  - b_\alpha \alpha_i) d\*\alpha_i
+\end{align*}
+
+Now the first term does not depend on $\alpha_i$, the second term can be done with the hint from the lab $\langle \ln x\rangle = - \ln b + \psi(a)$ and the third term is just the expectation times a constant:
+
+Obtaining in the end:
+
+\begin{align*}
+&= \sum_{i=1}^q \left [ \ln \frac{b_\alpha^{a_\alpha}}{\Gamma(a_\alpha)} + (a_\alpha - 1)(- \ln b_\alpha + \psi(a_\alpha)) - b_\alpha \frac{a_\alpha}{b_\alpha} \right] \\
+&= \sum_{i=1}^q \left [\ln \frac{b_\alpha^{a_\alpha}}{\Gamma(a_\alpha)} + (a_\alpha - 1)(- \ln b_\alpha + \psi(a_\alpha)) - a_\alpha \right ]
+\end{align*}
+
+For $p(\tau)$ the derivation is the same except for the sum. Thus we present the final answer directly:
+
+\begin{align*}
+\langle \ln p(\tau) \rangle_{Q(\theta)} &= \ln \frac{\tilde{b}_\tau^{\tilde{a}_\tau}}{\Gamma(\tilde{a}_\tau)} + (\tilde{a}_\tau - 1)(- \ln \tilde{b}_\tau + \psi(\tilde{a}_\tau)) - \tilde{a}_\tau \\
+\end{align*}
+
+For $p(\*w|\*\alpha)$ we have to do a bit more work, because $Q(\*alpha)$ and $Q(\*W)$ remain in the integral:
+
+\begin{align*}
+\langle \ln p(\*w|\*\alpha) \rangle_{Q(\theta)} &= \sum_{i = 1}^q \int Q(\*\alpha_i)Q(\*W_i)(\ln \frac{\alpha_i}{2\pi}^{d/2} + (- \frac12 \*\alpha_i ||\*W_i||^2 )) d\*W d\*\alpha
+\end{align*}
+
+We split this integral into two parts, then the first part is again split into several parts obtaining:
+
+$$\frac{d}{2}( - \ln \tilde{b}_{\alpha i} + \psi(\tilde{a}_{\alpha_i}) - \ln 2\pi)$$
+
+For the second part we first push in the integral over $\alpha_i$ then we obtain a value that we can take out of the integral and we are left with an expectation that can be solved by equation 378 from the Matrix Cookbook:
+
+\begin{align*}
+- \frac12 \int Q(\*\alpha_i) Q(\*W_i) \alpha_i ||\*w_i||^2 dw_i d\alpha_i \\
+&= - \frac12 \frac{\tilde{a}_\alpha}{\tilde{b}_{\alpha i}} \int Q(\*W_i) ||\*w_i||^2 dw_i \\
+&= - \frac12 \frac{\tilde{a}_\alpha}{\tilde{b}_{\alpha i}} (\mbox{Tr}(\*{\Sigma_w}) (m_w^{(i)})^T m_w^{(i)} )
+\end{align*}
+
+The end result is then:
+
+\begin{align*}
+\sum_{i = 1}^q \left [ \frac{d}{2}( - \ln \tilde{b}_{\alpha i} + \psi(\tilde{a}_{\alpha_i}) - \ln 2\pi) - \frac12 \frac{\tilde{a}_\alpha}{\tilde{b}_{\alpha i}} (\mbox{Tr}(\*{\Sigma_w}) (m_w^{(i)})^T m_w^{(i)} ) \right ]
+\end{align*}
+
+
+
+
 \end{document}
