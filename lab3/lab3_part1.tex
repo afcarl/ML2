@@ -14,13 +14,13 @@
 
 \begin{document}
 
-\title{ML2 - Homework 4}
+\title{ML2 - Lab 3 part 1}
 \author{By Joost van Amersfoort and Otto Fabius}
 \maketitle
 
 \section*{1.}
 
-$Q$ approximates $p(\Theta|D)$, this can be seen from the input to the KL divergence, as given in equation 11 in Bishop99. As the KLD is the difference between the "true" distribution and the "approximate", when one of the inputs is q the other one must the distribution that Q approximates.
+$Q$ approximates the true posterior $p(\Theta|D)$, this can be seen from the input to the KL divergence, as given in equation 11 in Bishop99. The KL is the difference between the true posterior and the approximate so it needs to be added (in log space) to the lower bound in order to obtain the log-likelihood. This follows readily from the equation in the assignment.
 
 \section*{2.}
 
